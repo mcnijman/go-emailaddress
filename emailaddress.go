@@ -30,7 +30,7 @@ Host validation
 
 Host validation will first attempt to resolve the domain and then verify if we can start a mail
 transaction with the host. This is relatively slow as it will contact the host several times.
-Note that when `err == nil` it doesn't necessarily mean the email address actually exists.
+Note that when err == nil it doesn't necessarily mean the email address actually exists.
 
 	import "github.com/mcnijman/go-emailaddress"
 
@@ -51,7 +51,7 @@ This will look for emails in a byte array (ie text or an html response).
 	import "github.com/mcnijman/go-emailaddress"
 
 	text := []byte(`Send me an email at foo@bar.com.`)
-	validateHost := true
+	validateHost := false
 
 	emails := emailaddress.Find(text, validateHost)
 
@@ -79,6 +79,30 @@ var (
 	validEmailRegexp = regexp.MustCompile(fmt.Sprintf("^%s*$", rfc5322))
 	findEmailRegexp  = regexp.MustCompile(rfc5322)
 )
+
+// EmailAddress is a structure that stores the address local-part@domain parts.
+type EmailAddress struct {
+	// LocalPart usually the username of an email address.
+	LocalPart string
+
+	// Domain is the part of the email address after the last @.
+	// This should be DNS resolvable to an email server.
+	Domain string
+}
+
+func (e EmailAddress) String() string {
+	return fmt.Sprintf("%s@%s", e.LocalPart, e.Domain)
+}
+
+// ValidateHost will test if the email address is actually reachable. It will first try to resolve
+// the host and then start a mail transaction.
+func (e EmailAddress) ValidateHost() error {
+	host, err := lookupHost(e.Domain)
+	if err != nil {
+		return err
+	}
+	return tryHost(host, e)
+}
 
 // Find uses the rfc5322 regex to match, parse and validate any email addresses found in a string.
 // If the validateHost boolean is true it will call the validate host for every email address
@@ -111,30 +135,6 @@ func Parse(email string) (*EmailAddress, error) {
 		Domain:    email[i+1:],
 	}
 	return e, nil
-}
-
-// EmailAddress is a structure that stores the address local-part@domain parts.
-type EmailAddress struct {
-	// LocalPart usually the username of an email address.
-	LocalPart string
-
-	// Domain is the part of the email address after the last @.
-	// This should be DNS resolvable to an email server.
-	Domain string
-}
-
-func (e EmailAddress) String() string {
-	return fmt.Sprintf("%s@%s", e.LocalPart, e.Domain)
-}
-
-// ValidateHost will test if the email address is actually reachable. It will first try to resolve
-// the host and then start a mail transaction.
-func (e EmailAddress) ValidateHost() error {
-	host, err := lookupHost(e.Domain)
-	if err != nil {
-		return err
-	}
-	return tryHost(host, e)
 }
 
 // lookupHost first checks if any MX records are available and if not, it will check

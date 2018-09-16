@@ -65,7 +65,7 @@ This will look for emails in a byte array (ie text or an html response).
 import "github.com/mcnijman/go-emailaddress"
 
 text := []byte(`Send me an email at foo@bar.com.`)
-validateHost := true
+validateHost := false
 
 emails := emailaddress.Find(text, validateHost)
 
