@@ -7,8 +7,6 @@
 Package emailaddress provides a tiny library for finding, parsing and validation of email
 addresses. This library is tested for Go v1.9 and above.
 
-Usage
-
 	go get -u github.com/mcnijman/go-emailaddress
 
 Local validation
@@ -82,30 +80,6 @@ var (
 	findEmailRegexp  = regexp.MustCompile(rfc5322)
 )
 
-// EmailAddress is a structure that stores the address local-part@domain parts.
-type EmailAddress struct {
-	// LocalPart usually the username of an email address.
-	LocalPart string
-
-	// Domain is the part of the email address after the last @.
-	// This should be DNS resolvable to an email server.
-	Domain string
-}
-
-func (e EmailAddress) String() string {
-	return fmt.Sprintf("%s@%s", e.LocalPart, e.Domain)
-}
-
-// ValidateHost will test if the email address is actually reachable. It will first try to resolve
-// the host and then start a mail transaction.
-func (e EmailAddress) ValidateHost() error {
-	host, err := lookupHost(e.Domain)
-	if err != nil {
-		return err
-	}
-	return tryHost(host, e)
-}
-
 // Find uses the rfc5322 regex to match, parse and validate any email addresses found in a string.
 // If the validateHost boolean is true it will call the validate host for every email address
 // encounterd.
@@ -137,6 +111,30 @@ func Parse(email string) (*EmailAddress, error) {
 		Domain:    email[i+1:],
 	}
 	return e, nil
+}
+
+// EmailAddress is a structure that stores the address local-part@domain parts.
+type EmailAddress struct {
+	// LocalPart usually the username of an email address.
+	LocalPart string
+
+	// Domain is the part of the email address after the last @.
+	// This should be DNS resolvable to an email server.
+	Domain string
+}
+
+func (e EmailAddress) String() string {
+	return fmt.Sprintf("%s@%s", e.LocalPart, e.Domain)
+}
+
+// ValidateHost will test if the email address is actually reachable. It will first try to resolve
+// the host and then start a mail transaction.
+func (e EmailAddress) ValidateHost() error {
+	host, err := lookupHost(e.Domain)
+	if err != nil {
+		return err
+	}
+	return tryHost(host, e)
 }
 
 // lookupHost first checks if any MX records are available and if not, it will check

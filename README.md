@@ -8,7 +8,7 @@ library is tested for Go v1.9 and above.
 Note that there is no such thing as perfect email address validation other than sending an actual
 email (ie. with a confirmation token). This library however checks if the email format conforms to
 the spec and if the host (domain) is actually able to receive emails. You can also use this library
-to find emails in a byte array. This package is created as similar packages don't seem to be
+to find emails in a byte array. This package was created as similar packages don't seem to be
 maintained anymore (ie contain bugs with pull requests still open), and/or use wrong local
 validation.
 
