@@ -124,11 +124,11 @@ func (e EmailAddress) ValidateHost() error {
 	return tryHost(host, e)
 }
 
-// ValidateIcanPublicSuffix will test if the public suffix of the domain is managed by ICANN using
+// ValidateIcanSuffix will test if the public suffix of the domain is managed by ICANN using
 // the golang.org/x/net/publicsuffix package. If not it will return an error. Note that if this
 // method returns an error it does not necessarily mean that the email address is invalid. Also the
 // suffix list in the standard package is embedded and thereby not up to date.
-func (e EmailAddress) ValidateIcanPublicSuffix() error {
+func (e EmailAddress) ValidateIcanSuffix() error {
 	d := strings.ToLower(e.Domain)
 	if s, icann := publicsuffix.PublicSuffix(d); !icann {
 		return fmt.Errorf("public suffix is not managed by ICANN, got %s", s)
@@ -163,7 +163,7 @@ func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 func FindWithIcannSuffix(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 	results := Find(haystack, false)
 	for _, e := range results {
-		if err := e.ValidateIcanPublicSuffix(); err == nil {
+		if err := e.ValidateIcanSuffix(); err == nil {
 			if validateHost {
 				if err := e.ValidateHost(); err != nil {
 					continue

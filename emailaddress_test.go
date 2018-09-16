@@ -65,7 +65,7 @@ func TestEmailAddress_ValidateHost(t *testing.T) {
 	}
 }
 
-func TestEmailAddress_ValidateIcanPublicSuffix(t *testing.T) {
+func TestEmailAddress_ValidateIcanSuffix(t *testing.T) {
 	type fields struct {
 		LocalPart string
 		Domain    string
@@ -85,8 +85,8 @@ func TestEmailAddress_ValidateIcanPublicSuffix(t *testing.T) {
 				LocalPart: tt.fields.LocalPart,
 				Domain:    tt.fields.Domain,
 			}
-			if err := e.ValidateIcanPublicSuffix(); (err != nil) != tt.wantErr {
-				t.Errorf("EmailAddress.ValidateIcanPublicSuffix() error = %v, wantErr %v", err, tt.wantErr)
+			if err := e.ValidateIcanSuffix(); (err != nil) != tt.wantErr {
+				t.Errorf("EmailAddress.ValidateIcanSuffix() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
