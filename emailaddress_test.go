@@ -65,6 +65,33 @@ func TestEmailAddress_ValidateHost(t *testing.T) {
 	}
 }
 
+func TestEmailAddress_ValidateIcanPublicSuffix(t *testing.T) {
+	type fields struct {
+		LocalPart string
+		Domain    string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{"1", fields{"fake", "example.com"}, false},
+		{"2", fields{"fake", "foo.foobar"}, true},
+		{"3", fields{"info", "google.com"}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := EmailAddress{
+				LocalPart: tt.fields.LocalPart,
+				Domain:    tt.fields.Domain,
+			}
+			if err := e.ValidateIcanPublicSuffix(); (err != nil) != tt.wantErr {
+				t.Errorf("EmailAddress.ValidateIcanPublicSuffix() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestFind(t *testing.T) {
 	type args struct {
 		haystack       []byte
@@ -80,7 +107,7 @@ func TestFind(t *testing.T) {
 		{"3", args{[]byte(`Sample text TestEmail@Example.com.`), false}, []*EmailAddress{{"TestEmail", "Example.com"}}},
 		{"4", args{[]byte(`Send me an email at this@domain.com or info@domain.com or not.`), false}, []*EmailAddress{{"this", "domain.com"}, {"info", "domain.com"}}},
 		{"5", args{[]byte(`Send me an email at fake@example.com.`), true}, nil},
-		{"6", args{[]byte(`<ul><li>Joe Smith has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>infos@google.com</li></ul>`), true}, []*EmailAddress{{"info10", "google.com"}}},
+		{"6", args{[]byte(`<ul><li>Joe Smith has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>info9@google.com</li></ul>`), true}, []*EmailAddress{{"info9", "google.com"}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

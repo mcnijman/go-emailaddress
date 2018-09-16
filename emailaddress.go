@@ -61,11 +61,11 @@ This will look for emails in a byte array (ie text or an html response).
 	// foo@bar.com
 
 As RFC 5322 is really broad this method will likely match images and urls that contain
-the '@' character. For more reliable results, you can use the following method.
+the '@' character (ie. !--logo@2x.png). For more reliable results, you can use the following method.
 
 	import "github.com/mcnijman/go-emailaddress"
 
-	text := []byte(`Send me an email at foo@bar.com.`)
+	text := []byte(`Send me an email at foo@bar.com or fake@domain.foobar.`)
 	validateHost := false
 
 	emails := emailaddress.FindWithIcannSuffix(text, validateHost)
@@ -85,7 +85,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/weppos/publicsuffix-go/net/publicsuffix"
+	"golang.org/x/net/publicsuffix"
 )
 
 var (
@@ -124,6 +124,18 @@ func (e EmailAddress) ValidateHost() error {
 	return tryHost(host, e)
 }
 
+// ValidateIcanPublicSuffix will test if the public suffix of the domain is managed by ICANN using
+// the golang.org/x/net/publicsuffix package. If not it will return an error. Note that if this
+// method returns an error it does not necessarily mean that the email address is invalid. Also the
+// suffix list in the standard package is embedded and thereby not up to date.
+func (e EmailAddress) ValidateIcanPublicSuffix() error {
+	d := strings.ToLower(e.Domain)
+	if s, icann := publicsuffix.PublicSuffix(d); !icann {
+		return fmt.Errorf("public suffix is not managed by ICANN, got %s", s)
+	}
+	return nil
+}
+
 // Find uses the RFC 5322 regex to match, parse and validate any email addresses found in a string.
 // If the validateHost boolean is true it will call the validate host for every email address
 // encounterd. As RFC 5322 is really broad this method will likely match images and urls that
@@ -151,8 +163,7 @@ func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 func FindWithIcannSuffix(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 	results := Find(haystack, false)
 	for _, e := range results {
-		d := strings.ToLower(e.Domain)
-		if _, icann := publicsuffix.PublicSuffix(d); icann {
+		if err := e.ValidateIcanPublicSuffix(); err == nil {
 			if validateHost {
 				if err := e.ValidateHost(); err != nil {
 					continue

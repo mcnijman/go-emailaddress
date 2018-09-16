@@ -76,12 +76,12 @@ for _, e := range emails {
 ```
 
 As RFC 5322 is really broad this method will likely match images and urls that contain
-the '@' character. For more reliable results, you can use the following method.
+the '@' character (ie. !--logo@2x.png). For more reliable results, you can use the following method.
 
 ```go
 import "github.com/mcnijman/go-emailaddress"
 
-text := []byte(`Send me an email at foo@bar.com.`)
+text := []byte(`Send me an email at foo@bar.com or fake@domain.foobar.`)
 validateHost := false
 
 emails := emailaddress.FindWithIcannSuffix(text, validateHost)
