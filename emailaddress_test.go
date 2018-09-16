@@ -23,6 +23,7 @@ func TestEmailAddress_String(t *testing.T) {
 		{"1", fields{"foo", "bar.com"}, "foo@bar.com"},
 		{"2", fields{"foo", ""}, ""},
 		{"3", fields{"", "bar.com"}, ""},
+		{"4", fields{"", ""}, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -49,7 +50,7 @@ func TestEmailAddress_ValidateHost(t *testing.T) {
 	}{
 		{"1", fields{"fake", "example.com"}, true},
 		{"2", fields{"fake", "foo.foobar"}, true},
-		{"3", fields{"r", "google.com"}, false},
+		{"3", fields{"infos", "google.com"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -79,12 +80,36 @@ func TestFind(t *testing.T) {
 		{"3", args{[]byte(`Sample text TestEmail@Example.com.`), false}, []*EmailAddress{{"TestEmail", "Example.com"}}},
 		{"4", args{[]byte(`Send me an email at this@domain.com or info@domain.com or not.`), false}, []*EmailAddress{{"this", "domain.com"}, {"info", "domain.com"}}},
 		{"5", args{[]byte(`Send me an email at fake@example.com.`), true}, nil},
-		{"6", args{[]byte(`<ul><li>Rob Pike has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>r@google.com</li></ul>`), true}, []*EmailAddress{{"r", "google.com"}}},
+		{"6", args{[]byte(`<ul><li>Joe Smith has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>infos@google.com</li></ul>`), true}, []*EmailAddress{{"info10", "google.com"}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if gotEmails := Find(tt.args.haystack, tt.args.validateRemote); !reflect.DeepEqual(gotEmails, tt.wantEmails) {
 				t.Errorf("Find() = %v, want %v", gotEmails, tt.wantEmails)
+			}
+		})
+	}
+}
+
+func TestFindWithIcannSuffix(t *testing.T) {
+	type args struct {
+		haystack     []byte
+		validateHost bool
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantEmails []*EmailAddress
+	}{
+		{"1", args{[]byte(`Sample text test@example.com.`), false}, []*EmailAddress{{"test", "example.com"}}},
+		{"2", args{[]byte(`Sample text test@example.foobar.`), false}, nil},
+		{"3", args{[]byte(`Send me an email at fake@example.foobar.`), true}, nil},
+		{"4", args{[]byte(`<ul><li>Joe Smith has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>info10@google.com</li></ul>`), true}, []*EmailAddress{{"info10", "google.com"}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotEmails := FindWithIcannSuffix(tt.args.haystack, tt.args.validateHost); !reflect.DeepEqual(gotEmails, tt.wantEmails) {
+				t.Errorf("FindWithIcannSuffix() = %v, want %v", gotEmails, tt.wantEmails)
 			}
 		})
 	}
@@ -179,8 +204,9 @@ func Test_tryHost(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"1", args{"aspmx.l.google.com.", EmailAddress{"r", "google.com"}}, false},
-		{"2", args{"non valid host", EmailAddress{"fake", "example.com"}}, true},
+		{"1", args{"aspmx.l.google.com.", EmailAddress{"info1", "google.com"}}, false},
+		{"2", args{"173.194.68.27", EmailAddress{"info2", "google.com"}}, false},
+		{"3", args{"non valid host", EmailAddress{"fake", "example.com"}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

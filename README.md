@@ -75,6 +75,23 @@ for _, e := range emails {
 // foo@bar.com
 ```
 
+As RFC 5322 is really broad this method will likely match images and urls that contain
+the '@' character. For more reliable results, you can use the following method.
+
+```go
+import "github.com/mcnijman/go-emailaddress"
+
+text := []byte(`Send me an email at foo@bar.com.`)
+validateHost := false
+
+emails := emailaddress.FindWithIcannSuffix(text, validateHost)
+
+for _, e := range emails {
+    fmt.Println(e)
+}
+// foo@bar.com
+```
+
 ## Versioning ##
 
 This library uses [semantic versioning 2.0.0](https://semver.org/spec/v2.0.0.html).

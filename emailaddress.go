@@ -60,6 +60,21 @@ This will look for emails in a byte array (ie text or an html response).
 	}
 	// foo@bar.com
 
+As RFC 5322 is really broad this method will likely match images and urls that contain
+the '@' character. For more reliable results, you can use the following method.
+
+	import "github.com/mcnijman/go-emailaddress"
+
+	text := []byte(`Send me an email at foo@bar.com.`)
+	validateHost := false
+
+	emails := emailaddress.FindWithIcannSuffix(text, validateHost)
+
+	for _, e := range emails {
+		fmt.Println(e)
+	}
+	// foo@bar.com
+
 */
 package emailaddress
 
@@ -69,6 +84,8 @@ import (
 	"net/smtp"
 	"regexp"
 	"strings"
+
+	"github.com/weppos/publicsuffix-go/net/publicsuffix"
 )
 
 var (
@@ -107,13 +124,35 @@ func (e EmailAddress) ValidateHost() error {
 	return tryHost(host, e)
 }
 
-// Find uses the rfc5322 regex to match, parse and validate any email addresses found in a string.
+// Find uses the RFC 5322 regex to match, parse and validate any email addresses found in a string.
 // If the validateHost boolean is true it will call the validate host for every email address
-// encounterd.
+// encounterd. As RFC 5322 is really broad this method will likely match images and urls that
+// contain the '@' character.
 func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 	results := findEmailRegexp.FindAll(haystack, -1)
 	for _, r := range results {
 		if e, err := Parse(string(r)); err == nil {
+			if validateHost {
+				if err := e.ValidateHost(); err != nil {
+					continue
+				}
+			}
+			emails = append(emails, e)
+		}
+	}
+	return emails
+}
+
+// FindWithIcannSuffix uses the RFC 5322 regex to match, parse and validate any email addresses
+// found in a string. It will return emails if its eTLD is managed by the ICANN organization.
+// If the validateHost boolean is true it will call the validate host for every email address
+// encounterd. As RFC 5322 is really broad this method will likely match images and urls that
+// contain the '@' character.
+func FindWithIcannSuffix(haystack []byte, validateHost bool) (emails []*EmailAddress) {
+	results := Find(haystack, false)
+	for _, e := range results {
+		d := strings.ToLower(e.Domain)
+		if _, icann := publicsuffix.PublicSuffix(d); icann {
 			if validateHost {
 				if err := e.ValidateHost(); err != nil {
 					continue
