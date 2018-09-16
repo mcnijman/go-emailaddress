@@ -71,12 +71,12 @@ func TestFind(t *testing.T) {
 		args       args
 		wantEmails []*EmailAddress
 	}{
-		{"1", args{[]byte(`test@example.com`), false}, []*EmailAddress{&EmailAddress{"test", "example.com"}}},
-		{"2", args{[]byte(`Sample text test@example.com.`), false}, []*EmailAddress{&EmailAddress{"test", "example.com"}}},
-		{"3", args{[]byte(`Sample text TestEmail@Example.com.`), false}, []*EmailAddress{&EmailAddress{"TestEmail", "Example.com"}}},
-		{"4", args{[]byte(`Send me an email at this@domain.com or info@domain.com or not.`), false}, []*EmailAddress{&EmailAddress{"this", "domain.com"}, &EmailAddress{"info", "domain.com"}}},
-		{"4", args{[]byte(`Send me an email at fake@example.com.`), true}, nil},
-		{"6", args{[]byte(`<ul><li>Rob Pike has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>r@google.com</li></ul>`), true}, []*EmailAddress{&EmailAddress{"r", "google.com"}}},
+		{"1", args{[]byte(`test@example.com`), false}, []*EmailAddress{{"test", "example.com"}}},
+		{"2", args{[]byte(`Sample text test@example.com.`), false}, []*EmailAddress{{"test", "example.com"}}},
+		{"3", args{[]byte(`Sample text TestEmail@Example.com.`), false}, []*EmailAddress{{"TestEmail", "Example.com"}}},
+		{"4", args{[]byte(`Send me an email at this@domain.com or info@domain.com or not.`), false}, []*EmailAddress{{"this", "domain.com"}, {"info", "domain.com"}}},
+		{"5", args{[]byte(`Send me an email at fake@example.com.`), true}, nil},
+		{"6", args{[]byte(`<ul><li>Rob Pike has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>r@google.com</li></ul>`), true}, []*EmailAddress{{"r", "google.com"}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
