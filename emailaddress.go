@@ -4,7 +4,8 @@
 // license that can be found in the LICENSE file.
 
 /*
-Package emailaddress provides a tiny library for finding, parsing and validation of email addresses. This library is tested for Go v1.9 and above.
+Package emailaddress provides a tiny library for finding, parsing and validation of email
+addresses. This library is tested for Go v1.9 and above.
 
 Usage
 
@@ -12,7 +13,8 @@ Usage
 
 Local validation
 
-Parse and validate the email locally using RFC 5322 regex, note that when `err == nil` it doesn't necessarily mean the email address is valid.
+Parse and validate the email locally using RFC 5322 regex, note that when err == nil it doesn't
+necessarily mean the email address actually exists.
 
 	import "github.com/mcnijman/go-emailaddress"
 
@@ -28,7 +30,8 @@ Parse and validate the email locally using RFC 5322 regex, note that when `err =
 
 Host validation
 
-Host validation will first attempt to resolve the domain and then verify if we can start a mail transaction with the host.
+Host validation will first attempt to resolve the domain and then verify if we can start a mail
+transaction with the host. This is relatively slow as it will contact the host several times.
 Note that when `err == nil` it doesn't necessarily mean the email address actually exists.
 
 	import "github.com/mcnijman/go-emailaddress"
@@ -81,15 +84,20 @@ var (
 
 // EmailAddress is a structure that stores the address local-part@domain parts.
 type EmailAddress struct {
+	// LocalPart usually the username of an email address.
 	LocalPart string
-	Domain    string
+
+	// Domain is the part of the email address after the last @.
+	// This should be DNS resolvable to an email server.
+	Domain string
 }
 
 func (e EmailAddress) String() string {
 	return fmt.Sprintf("%s@%s", e.LocalPart, e.Domain)
 }
 
-// ValidateHost will test if the email address is actually reachable
+// ValidateHost will test if the email address is actually reachable. It will first try to resolve
+// the host and then start a mail transaction.
 func (e EmailAddress) ValidateHost() error {
 	host, err := lookupHost(e.Domain)
 	if err != nil {
@@ -98,8 +106,9 @@ func (e EmailAddress) ValidateHost() error {
 	return tryHost(host, e)
 }
 
-// Find uses regex to match, parse and validate any email addresses found
-// in a string
+// Find uses the rfc5322 regex to match, parse and validate any email addresses found in a string.
+// If the validateHost boolean is true it will call the validate host for every email address
+// encounterd.
 func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 	results := findEmailRegexp.FindAll(haystack, -1)
 	for _, r := range results {
@@ -115,8 +124,8 @@ func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 	return emails
 }
 
-// Parse will parse the input and validate the email locally.
-// If you want to validate this email remotely call the ValidateHost method
+// Parse will parse the input and validate the email locally. If you want to validate the host of
+// this email address remotely call the ValidateHost method.
 func Parse(email string) (*EmailAddress, error) {
 	if !validEmailRegexp.MatchString(email) {
 		return nil, fmt.Errorf("format is incorrect for %s", email)

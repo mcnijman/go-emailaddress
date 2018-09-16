@@ -2,9 +2,15 @@
 
 [![GoDoc](https://godoc.org/github.com/mcnijman/go-emailaddress?status.svg)](https://godoc.org/github.com/mcnijman/go-emailaddress) [![Build Status](https://travis-ci.org/mcnijman/go-emailaddress.svg?branch=master)](https://travis-ci.org/mcnijman/go-emailaddress) [![Test Coverage](https://coveralls.io/repos/github/mcnijman/go-emailaddress/badge.svg?branch=master)](https://coveralls.io/github/mcnijman/go-emailaddress?branch=master) [![go report](https://goreportcard.com/badge/github.com/mcnijman/go-emailaddress)](https://goreportcard.com/report/github.com/mcnijman/go-emailaddress)
 
-go-emailaddress is a tiny Go library for finding, parsing and validating email addresses. This library is tested for Go v1.9 and above.
+go-emailaddress is a tiny Go library for finding, parsing and validating email addresses. This
+library is tested for Go v1.9 and above.
 
-Note that there is no such thing as perfect email address validation other than sending an actual email (ie. with a confirmation token). This library however checks if the email format conforms to the spec and if the host (domain) is actually able to receive emails. You can also use this library to find emails in a byte array. This package is created as similar packages don't seem to be maintained anymore (ie contain bugs with pull requests still open), and/or use wrong local validation.
+Note that there is no such thing as perfect email address validation other than sending an actual
+email (ie. with a confirmation token). This library however checks if the email format conforms to
+the spec and if the host (domain) is actually able to receive emails. You can also use this library
+to find emails in a byte array. This package is created as similar packages don't seem to be
+maintained anymore (ie contain bugs with pull requests still open), and/or use wrong local
+validation.
 
 ## Usage ##
 
@@ -14,8 +20,8 @@ go get -u github.com/mcnijman/go-emailaddress
 
 ### Parsing and local validation ###
 
-Parse and validate the email locally using RFC 5322 regex,
-note that when `err == nil` it doesn't necessarily mean the email address is valid.
+Parse and validate the email locally using RFC 5322 regex, note that when `err == nil` it doesn't
+necessarily mean the email address actually exists.
 
 ```go
 import "github.com/mcnijman/go-emailaddress"
@@ -33,7 +39,8 @@ fmt.Println(email.String()) // foo@bar.com
 
 ### Validating the host ###
 
-Host validation will first attempt to resolve the domain and then verify if we can start a mail transaction with the host.
+Host validation will first attempt to resolve the domain and then verify if we can start a mail
+transaction with the host. This is relatively slow as it will contact the host several times.
 Note that when `err == nil` it doesn't necessarily mean the email address actually exists.
 
 ```go
