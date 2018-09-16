@@ -132,6 +132,7 @@ func TestFindWithIcannSuffix(t *testing.T) {
 		{"2", args{[]byte(`Sample text test@example.foobar.`), false}, nil},
 		{"3", args{[]byte(`Send me an email at fake@example.foobar.`), true}, nil},
 		{"4", args{[]byte(`<ul><li>Joe Smith has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>info10@google.com</li></ul>`), true}, []*EmailAddress{{"info10", "google.com"}}},
+		{"5", args{[]byte(`Sample text test@25c95f9e-b0d4-4d67-a159-56f360b48273.museum.`), true}, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
