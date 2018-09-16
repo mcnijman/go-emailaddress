@@ -46,7 +46,8 @@ func TestEmailAddress_ValidateHost(t *testing.T) {
 		wantErr bool
 	}{
 		{"1", fields{"fake", "example.com"}, true},
-		{"1", fields{"r", "google.com"}, false},
+		{"2", fields{"fake", "foo.foobar"}, true},
+		{"3", fields{"r", "google.com"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -146,12 +147,11 @@ func Test_lookupHost(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    string
 		wantErr bool
 	}{
-		{"1", args{"google.com"}, "aspmx.l.google.com.", false},
-		{"2", args{"example.com"}, "2606:2800:220:1:248:1893:25c8:1946", false},
-		{"3", args{"fake.foobar"}, "", true},
+		{"1", args{"google.com"}, false},
+		{"2", args{"example.com"}, false},
+		{"3", args{"fake.foobar"}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -160,8 +160,8 @@ func Test_lookupHost(t *testing.T) {
 				t.Errorf("lookupHost() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("lookupHost() = %v, want %v", got, tt.want)
+			if got == "" && !tt.wantErr {
+				t.Errorf("lookupHost() = %v, want non empty", got)
 			}
 		})
 	}
@@ -178,7 +178,7 @@ func Test_tryHost(t *testing.T) {
 		wantErr bool
 	}{
 		{"1", args{"aspmx.l.google.com.", EmailAddress{"r", "google.com"}}, false},
-		{"2", args{"2606:2800:220:1:248:1893:25c8:1946", EmailAddress{"fake", "example.com"}}, true},
+		{"2", args{"non valid host", EmailAddress{"fake", "example.com"}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
