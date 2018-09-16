@@ -6,11 +6,58 @@
 /*
 Package emailaddress provides a tiny library for finding, parsing and validation of email addresses. This library is tested for Go v1.9 and above.
 
-Usage:
+Usage
+
+	go get -u github.com/mcnijman/go-emailaddress
+
+Local validation
+
+Parse and validate the email locally using RFC 5322 regex, note that when `err == nil` it doesn't necessarily mean the email address is valid.
 
 	import "github.com/mcnijman/go-emailaddress"
 
+	email, err := emailaddress.Parse("foo@bar.com")
+	if err != nil {
+		fmt.Println("invalid email")
+	}
 
+	fmt.Println(email.LocalPart) // foo
+	fmt.Println(email.Domain) // bar.com
+	fmt.Println(email) // foo@bar.com
+	fmt.Println(email.String()) // foo@bar.com
+
+Host validation
+
+Host validation will first attempt to resolve the domain and then verify if we can start a mail transaction with the host.
+Note that when `err == nil` it doesn't necessarily mean the email address actually exists.
+
+	import "github.com/mcnijman/go-emailaddress"
+
+	email, err := emailaddress.Parse("foo@bar.com")
+	if err != nil {
+		fmt.Println("invalid email")
+	}
+
+	err := email.ValidateHost()
+	if err != nil {
+		fmt.Println("invalid host")
+	}
+
+Finding emails
+
+This will look for emails in a byte array (ie text or an html response).
+
+	import "github.com/mcnijman/go-emailaddress"
+
+	text := []byte(`Send me an email at foo@bar.com.`)
+	validateHost := true
+
+	emails := emailaddress.Find(text, validateHost)
+
+	for _, e := range emails {
+		fmt.Println(e)
+	}
+	// foo@bar.com
 
 */
 package emailaddress
