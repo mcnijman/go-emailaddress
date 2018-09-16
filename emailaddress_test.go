@@ -21,6 +21,8 @@ func TestEmailAddress_String(t *testing.T) {
 		want   string
 	}{
 		{"1", fields{"foo", "bar.com"}, "foo@bar.com"},
+		{"2", fields{"foo", ""}, ""},
+		{"3", fields{"", "bar.com"}, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

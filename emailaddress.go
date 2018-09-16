@@ -91,6 +91,9 @@ type EmailAddress struct {
 }
 
 func (e EmailAddress) String() string {
+	if e.LocalPart == "" || e.Domain == "" {
+		return ""
+	}
 	return fmt.Sprintf("%s@%s", e.LocalPart, e.Domain)
 }
 
