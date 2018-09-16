@@ -75,6 +75,10 @@ for _, e := range emails {
 // foo@bar.com
 ```
 
+## Versioning ##
+
+This library uses [semantic versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
+
 ## License ##
 
 This library is distributed under the MIT license found in the [LICENSE](./LICENSE)
