@@ -92,9 +92,13 @@ var (
 	// rfc5322 is a RFC 5322 regex, as per: https://stackoverflow.com/a/201378/5405453.
 	// Note that this can't verify that the address is an actual working email address.
 	// Use ValidateHost as a starter and/or send them one :-).
-	rfc5322          = "(?i)(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
-	validEmailRegexp = regexp.MustCompile(fmt.Sprintf("^%s*$", rfc5322))
-	findEmailRegexp  = regexp.MustCompile(rfc5322)
+	rfc5322            = "(?i)(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
+	validRfc5322Regexp = regexp.MustCompile(fmt.Sprintf("^%s*$", rfc5322))
+	findRfc5322Regexp  = regexp.MustCompile(rfc5322)
+
+	// findCommonRegexp is a stricter regex than the RFC 5322 and matches emails that
+	// are more likely to be real.
+	findCommonRegexp = regexp.MustCompile("(?i)([A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,24})")
 )
 
 // EmailAddress is a structure that stores the address local-part@domain parts.
@@ -136,12 +140,30 @@ func (e EmailAddress) ValidateIcanSuffix() error {
 	return nil
 }
 
-// Find uses the RFC 5322 regex to match, parse and validate any email addresses found in a string.
+// Find uses the a stricter regex than the RFC 5322 and matches emails that are more likely to be
+// real. Since the RFC 5322 spec is looser, it can miss emails that are real, but will more likely
+// have better results. See examples in the tests.
+func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
+	results := findCommonRegexp.FindAll(haystack, -1)
+	for _, r := range results {
+		if e, err := Parse(string(r)); err == nil {
+			if validateHost {
+				if err := e.ValidateHost(); err != nil {
+					continue
+				}
+			}
+			emails = append(emails, e)
+		}
+	}
+	return emails
+}
+
+// FindWithRFC5322 uses the RFC 5322 regex to match, parse and validate any email addresses found in a string.
 // If the validateHost boolean is true it will call the validate host for every email address
 // encounterd. As RFC 5322 is really broad this method will likely match images and urls that
 // contain the '@' character.
-func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
-	results := findEmailRegexp.FindAll(haystack, -1)
+func FindWithRFC5322(haystack []byte, validateHost bool) (emails []*EmailAddress) {
+	results := findRfc5322Regexp.FindAll(haystack, -1)
 	for _, r := range results {
 		if e, err := Parse(string(r)); err == nil {
 			if validateHost {
@@ -178,7 +200,7 @@ func FindWithIcannSuffix(haystack []byte, validateHost bool) (emails []*EmailAdd
 // Parse will parse the input and validate the email locally. If you want to validate the host of
 // this email address remotely call the ValidateHost method.
 func Parse(email string) (*EmailAddress, error) {
-	if !validEmailRegexp.MatchString(email) {
+	if !validRfc5322Regexp.MatchString(email) {
 		return nil, fmt.Errorf("format is incorrect for %s", email)
 	}
 

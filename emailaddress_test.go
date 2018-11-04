@@ -108,11 +108,38 @@ func TestFind(t *testing.T) {
 		{"4", args{[]byte(`Send me an email at this@domain.com or info@domain.com or not.`), false}, []*EmailAddress{{"this", "domain.com"}, {"info", "domain.com"}}},
 		{"5", args{[]byte(`Send me an email at fake@example.com.`), true}, nil},
 		{"6", args{[]byte(`<ul><li>Joe Smith has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>info9@google.com</li></ul>`), true}, []*EmailAddress{{"info9", "google.com"}}},
+		{"7", args{[]byte(`test@example.co.uk`), false}, []*EmailAddress{{"test", "example.co.uk"}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if gotEmails := Find(tt.args.haystack, tt.args.validateRemote); !reflect.DeepEqual(gotEmails, tt.wantEmails) {
 				t.Errorf("Find() = %v, want %v", gotEmails, tt.wantEmails)
+			}
+		})
+	}
+}
+
+func TestFindWithRFC5322(t *testing.T) {
+	type args struct {
+		haystack       []byte
+		validateRemote bool
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantEmails []*EmailAddress
+	}{
+		{"1", args{[]byte(`test@example.com`), false}, []*EmailAddress{{"test", "example.com"}}},
+		{"2", args{[]byte(`Sample text test@example.com.`), false}, []*EmailAddress{{"test", "example.com"}}},
+		{"3", args{[]byte(`Sample text TestEmail@Example.com.`), false}, []*EmailAddress{{"TestEmail", "Example.com"}}},
+		{"4", args{[]byte(`Send me an email at this@domain.com or info@domain.com or not.`), false}, []*EmailAddress{{"this", "domain.com"}, {"info", "domain.com"}}},
+		{"5", args{[]byte(`Send me an email at fake@example.com.`), true}, nil},
+		{"6", args{[]byte(`<ul><li>Joe Smith has moved on to<a href="http://www.Google.com/">Google</a>, 1600 Amphitheatre Parkway,Mountain View, CA 94043</li><li>info9@google.com</li></ul>`), true}, []*EmailAddress{{"info9", "google.com"}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotEmails := FindWithRFC5322(tt.args.haystack, tt.args.validateRemote); !reflect.DeepEqual(gotEmails, tt.wantEmails) {
+				t.Errorf("FindWithRFC5322() = %v, want %v", gotEmails, tt.wantEmails)
 			}
 		})
 	}
