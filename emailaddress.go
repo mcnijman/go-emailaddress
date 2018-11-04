@@ -117,11 +117,11 @@ func (e EmailAddress) String() string {
 // ValidateHost will test if the email address is actually reachable. It will first try to resolve
 // the host and then start a mail transaction.
 func (e EmailAddress) ValidateHost() error {
-	host, err := lookupHost(e.Domain)
+	host, err := LookupHost(e.Domain)
 	if err != nil {
 		return err
 	}
-	return tryHost(host, e)
+	return TryHost(host, e)
 }
 
 // ValidateIcanSuffix will test if the public suffix of the domain is managed by ICANN using
@@ -190,10 +190,10 @@ func Parse(email string) (*EmailAddress, error) {
 	return e, nil
 }
 
-// lookupHost first checks if any MX records are available and if not, it will check
+// LookupHost first checks if any MX records are available and if not, it will check
 // if A records are available as they can resolve email server hosts. An error indicates
 // that non of the A or MX records are available.
-func lookupHost(domain string) (string, error) {
+func LookupHost(domain string) (string, error) {
 	if mx, err := net.LookupMX(domain); err == nil {
 		return mx[0].Host, nil
 	}
@@ -203,8 +203,8 @@ func lookupHost(domain string) (string, error) {
 	return "", fmt.Errorf("failed finding MX and A records for domain %s", domain)
 }
 
-// tryHost will verify if we can start a mail transaction with the host.
-func tryHost(host string, e EmailAddress) error {
+// TryHost will verify if we can start a mail transaction with the host.
+func TryHost(host string, e EmailAddress) error {
 	client, err := smtp.Dial(fmt.Sprintf("%s:%d", host, 25))
 	if err != nil {
 		return err

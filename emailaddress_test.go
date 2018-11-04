@@ -153,7 +153,6 @@ func TestParse(t *testing.T) {
 		want    *EmailAddress
 		wantErr bool
 	}{
-		// valid emails
 		{"valid_1", args{"email@domain.com"}, &EmailAddress{"email", "domain.com"}, false},
 		{"valid_2", args{"firstname+last.name@domain.com"}, &EmailAddress{"firstname+last.name", "domain.com"}, false},
 		{"valid_3", args{"\"email\"@domain.com"}, &EmailAddress{"\"email\"", "domain.com"}, false},
@@ -195,7 +194,7 @@ func TestParse(t *testing.T) {
 	}
 }
 
-func Test_lookupHost(t *testing.T) {
+func Test_LookupHost(t *testing.T) {
 	type args struct {
 		domain string
 	}
@@ -210,19 +209,19 @@ func Test_lookupHost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := lookupHost(tt.args.domain)
+			got, err := LookupHost(tt.args.domain)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("lookupHost() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LookupHost() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == "" && !tt.wantErr {
-				t.Errorf("lookupHost() = %v, want non empty", got)
+				t.Errorf("LookupHost() = %v, want non empty", got)
 			}
 		})
 	}
 }
 
-func Test_tryHost(t *testing.T) {
+func Test_TryHost(t *testing.T) {
 	type args struct {
 		host string
 		e    EmailAddress
@@ -238,8 +237,8 @@ func Test_tryHost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tryHost(tt.args.host, tt.args.e); (err != nil) != tt.wantErr {
-				t.Errorf("tryHost() error = %v, wantErr %v", err, tt.wantErr)
+			if err := TryHost(tt.args.host, tt.args.e); (err != nil) != tt.wantErr {
+				t.Errorf("TryHost() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
