@@ -206,6 +206,7 @@ func TestParse(t *testing.T) {
 		{"invalid_12", args{"email@domain"}, nil, true},
 		{"invalid_13", args{"email@-domain.com"}, nil, true},
 		{"invalid_14", args{"email@domain..com"}, nil, true},
+		{"invalid_15", args{"email@"}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

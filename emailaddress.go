@@ -205,9 +205,13 @@ func Parse(email string) (*EmailAddress, error) {
 	}
 
 	i := strings.LastIndexByte(email, '@')
+
 	e := &EmailAddress{
 		LocalPart: email[:i],
 		Domain:    email[i+1:],
+	}
+	if e.Domain == "" {
+		return nil, fmt.Errorf("format is incorrect for %s", email)
 	}
 	return e, nil
 }
