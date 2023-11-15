@@ -9,7 +9,7 @@ addresses. This library is tested for Go v1.9 and above.
 
 	go get -u github.com/mcnijman/go-emailaddress
 
-Local validation
+# Local validation
 
 Parse and validate the email locally using RFC 5322 regex, note that when err == nil it doesn't
 necessarily mean the email address actually exists.
@@ -26,7 +26,7 @@ necessarily mean the email address actually exists.
 	fmt.Println(email) // foo@bar.com
 	fmt.Println(email.String()) // foo@bar.com
 
-Host validation
+# Host validation
 
 Host validation will first attempt to resolve the domain and then verify if we can start a mail
 transaction with the host. This is relatively slow as it will contact the host several times.
@@ -44,7 +44,7 @@ Note that when err == nil it doesn't necessarily mean the email address actually
 		fmt.Println("invalid host")
 	}
 
-Finding emails
+# Finding emails
 
 This will look for emails in a byte array (ie text or an html response).
 
@@ -74,7 +74,6 @@ the '@' character (ie. !--logo@2x.png). For more reliable results, you can use t
 		fmt.Println(e)
 	}
 	// foo@bar.com
-
 */
 package emailaddress
 
@@ -160,7 +159,7 @@ func Find(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 
 // FindWithRFC5322 uses the RFC 5322 regex to match, parse and validate any email addresses found in a string.
 // If the validateHost boolean is true it will call the validate host for every email address
-// encounterd. As RFC 5322 is really broad this method will likely match images and urls that
+// encountered. As RFC 5322 is really broad this method will likely match images and urls that
 // contain the '@' character.
 func FindWithRFC5322(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 	results := findRfc5322Regexp.FindAll(haystack, -1)
@@ -180,7 +179,7 @@ func FindWithRFC5322(haystack []byte, validateHost bool) (emails []*EmailAddress
 // FindWithIcannSuffix uses the RFC 5322 regex to match, parse and validate any email addresses
 // found in a string. It will return emails if its eTLD is managed by the ICANN organization.
 // If the validateHost boolean is true it will call the validate host for every email address
-// encounterd. As RFC 5322 is really broad this method will likely match images and urls that
+// encountered. As RFC 5322 is really broad this method will likely match images and urls that
 // contain the '@' character.
 func FindWithIcannSuffix(haystack []byte, validateHost bool) (emails []*EmailAddress) {
 	results := Find(haystack, false)
@@ -229,9 +228,10 @@ func LookupHost(domain string) (string, error) {
 	return "", fmt.Errorf("failed finding MX and A records for domain %s", domain)
 }
 
-// TryHost will verify if we can start a mail transaction with the host.
+// TryHost will verify if we can start a mail transaction with the host. A lot of
+// hosts block this method so don't expect much from it.
 func TryHost(host string, e EmailAddress) error {
-	client, err := smtp.Dial(fmt.Sprintf("%s:%d", host, 25))
+	client, err := smtp.Dial(fmt.Sprintf("%s:%d", host, 587))
 	if err != nil {
 		return err
 	}
